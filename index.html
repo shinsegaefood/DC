@@ -23,7 +23,6 @@
       max-width: 520px;
     }
 
-    /* 상단 컬러바 */
     .header-bar {
       height: 10px;
       background: linear-gradient(90deg, #4a6cf7, #6c5ce7);
@@ -62,7 +61,17 @@
       margin-top: 12px;
     }
 
-    /* 질문 카드 */
+    .emp-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 6px 14px;
+      background: #f0f0ff;
+      color: #4a6cf7;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
     .question-label {
       font-size: 16px;
       font-weight: 500;
@@ -92,13 +101,9 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    .radio-option:hover {
-      background: #f5f5ff;
-    }
+    .radio-option:hover { background: #f5f5ff; }
 
-    .radio-option input {
-      display: none;
-    }
+    .radio-option input { display: none; }
 
     .radio-circle {
       width: 22px;
@@ -111,9 +116,7 @@
       transition: border-color 0.15s;
     }
 
-    .radio-option input:checked ~ .radio-circle {
-      border-color: #4a6cf7;
-    }
+    .radio-option input:checked ~ .radio-circle { border-color: #4a6cf7; }
 
     .radio-option input:checked ~ .radio-circle::after {
       content: '';
@@ -135,7 +138,6 @@
       transition: color 0.15s;
     }
 
-    /* 제출 버튼 */
     .actions {
       display: flex;
       justify-content: space-between;
@@ -225,7 +227,6 @@
       font-weight: 500;
     }
 
-    /* 에러 */
     .error-msg {
       color: #dc2626;
       font-size: 13px;
@@ -235,7 +236,6 @@
 
     .error-msg.show { display: block; }
 
-    /* 로딩 */
     .btn-submit .spinner {
       display: none;
       width: 18px;
@@ -258,9 +258,112 @@
       color: #9ca3af;
       margin-top: 24px;
     }
+
+    /* ── 사번 입력 팝업 ── */
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+
+    .overlay.hidden { display: none; }
+
+    .popup {
+      background: #fff;
+      border-radius: 16px;
+      padding: 36px 28px 28px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+
+    .popup-icon {
+      width: 52px;
+      height: 52px;
+      background: #f0f0ff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 24px;
+    }
+
+    .popup h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 6px;
+    }
+
+    .popup p {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 20px;
+    }
+
+    .popup input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 16px;
+      font-family: inherit;
+      text-align: center;
+      letter-spacing: 2px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .popup input:focus { border-color: #4a6cf7; }
+
+    .popup input.error { border-color: #dc2626; }
+
+    .popup .popup-error {
+      color: #dc2626;
+      font-size: 12px;
+      margin-top: 6px;
+      min-height: 18px;
+    }
+
+    .popup .btn-confirm {
+      width: 100%;
+      margin-top: 16px;
+      background: #4a6cf7;
+      color: #fff;
+      border: none;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 500;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    .popup .btn-confirm:hover { background: #3b5de7; }
   </style>
 </head>
 <body>
+
+<!-- 사번 입력 팝업 -->
+<div class="overlay" id="empOverlay">
+  <div class="popup">
+    <div class="popup-icon">👤</div>
+    <h2>사번을 입력해 주세요</h2>
+    <p>참석 확인을 위해 사번이 필요합니다</p>
+    <input type="text" id="empInput" placeholder="사번 입력" maxlength="10"
+           onkeydown="if(event.key==='Enter') confirmEmp()">
+    <div class="popup-error" id="empError"></div>
+    <button class="btn-confirm" onclick="confirmEmp()">확인</button>
+  </div>
+</div>
 
 <div class="container">
   <!-- 폼 화면 -->
@@ -269,7 +372,8 @@
     <div class="card">
       <h1 class="title">퇴직연금 DC형(확정기여형) 설명회 참석여부</h1>
       <p class="subtitle">참석 방식을 선택해 주세요.</p>
-      <p class="required-note">* 표시는 필수 질문입니다(선택 시 수정불가)</p>
+      <p class="required-note">* 표시는 필수 질문입니다</p>
+      <div class="emp-badge" id="empBadge"></div>
     </div>
 
     <div class="card standalone">
@@ -302,7 +406,7 @@
   <div class="result-card" id="resultView">
     <div class="result-icon">✓</div>
     <p class="result-title">응답이 기록되었습니다</p>
-    <p class="result-desc">참여해 주셔서 감사합니다.</p>
+    <p class="result-desc">참여해 주셔서 감사합니다.<br>동일 사번으로 다시 제출 시 최종 응답만 반영됩니다.</p>
     <div class="result-choice" id="resultChoice"></div>
   </div>
 
@@ -310,27 +414,48 @@
 </div>
 
 <script>
-  // ⚠️ 아래 URL을 Apps Script 웹앱 배포 URL로 교체하세요
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwfW5yCmdOqgI7KYm9jvH09uNZ4twjD1gIWIP4m8MGpPUOClDjRhfSeU5hHlN31qySFLw/exec';
 
+  let employeeId = '';
+
+  // 사번 입력 확인
+  function confirmEmp() {
+    const input = document.getElementById('empInput');
+    const error = document.getElementById('empError');
+    const val = input.value.trim();
+
+    if (!val) {
+      input.classList.add('error');
+      error.textContent = '사번을 입력해 주세요.';
+      return;
+    }
+
+    input.classList.remove('error');
+    error.textContent = '';
+    employeeId = val;
+
+    // 팝업 닫기, 사번 배지 표시
+    document.getElementById('empOverlay').classList.add('hidden');
+    document.getElementById('empBadge').textContent = '사번: ' + employeeId;
+  }
+
+  // 폼 제출
   function submitForm() {
     const selected = document.querySelector('input[name="attendance"]:checked');
     const errorMsg = document.getElementById('errorMsg');
     const btn = document.getElementById('submitBtn');
 
-    // 유효성 검사
     if (!selected) {
       errorMsg.classList.add('show');
       return;
     }
     errorMsg.classList.remove('show');
 
-    // 로딩 상태
     btn.classList.add('loading');
     btn.disabled = true;
 
-    // Apps Script로 전송
     const formData = new FormData();
+    formData.append('empId', employeeId);
     formData.append('attendance', selected.value);
     formData.append('timestamp', new Date().toLocaleString('ko-KR'));
 
@@ -340,7 +465,6 @@
     })
     .then(res => res.text())
     .then(() => {
-      // 완료 화면 표시
       document.getElementById('formView').style.display = 'none';
       document.getElementById('resultView').classList.add('show');
       document.getElementById('resultChoice').textContent = selected.value;
@@ -357,6 +481,11 @@
     radios.forEach(r => r.checked = false);
     document.getElementById('errorMsg').classList.remove('show');
   }
+
+  // 페이지 로드 시 사번 입력창 포커스
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('empInput').focus();
+  });
 </script>
 
 </body>
